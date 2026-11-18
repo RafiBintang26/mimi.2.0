@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistik Hidrasi - Daily Hydration Tracker 💧</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z'/></svg>">
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="container nav-container">
+            <a href="dashboard.html" class="brand-logo">
+                <div class="brand-icon">💧</div>
+                <div class="brand-text">Daily Hydration <span>Tracker</span></div>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="dashboard.html" class="nav-link">💧 Dashboard</a></li>
+                <li><a href="statistics.html" class="nav-link active">📊 Statistik</a></li>
+                <li><a href="profile.html" class="nav-link">👤 Profil & Perangkat</a></li>
+                <li id="admin-nav-item" style="display:none;"><a href="admin.html" class="nav-link">👑 Admin Portal</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <button class="btn btn-outline btn-sm logout-btn" title="Keluar">Keluar 🚪</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="dashboard-wrapper">
+        <div class="container">
+            
+            <div class="dashboard-header">
+                <div>
+                    <h2>Statistik Konsumsi Air 📈</h2>
+                    <p style="color:var(--text-secondary);font-size:0.95rem;">Evaluasi kepatuhan dan konsistensi hidrasi tubuh Anda</p>
+                </div>
+
+                <div class="chart-filter-pills">
+                    <button id="pill-7d" class="chart-pill active">7 Hari Terakhir</button>
+                    <button id="pill-30d" class="chart-pill">30 Hari Terakhir</button>
+                </div>
+            </div>
+
+            <!-- SUMMARY CARDS -->
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#e0f2fe;color:#0284c7;">
+                        📊
+                    </div>
+                    <div class="metric-info">
+                        <h6>Rata-rata Harian</h6>
+                        <div id="stat-avg-daily" class="metric-val">0 ml</div>
+                        <div class="metric-sub">Rerata konsumsi per hari</div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#ecfdf5;color:#10b981;">
+                        🏆
+                    </div>
+                    <div class="metric-info">
+                        <h6>Hari Capaian Target</h6>
+                        <div id="stat-days-achieved" class="metric-val">0 Hari</div>
+                        <div class="metric-sub">Target tercapai penuh</div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#f5f3ff;color:#8b5cf6;">
+                        ✨
+                    </div>
+                    <div class="metric-info">
+                        <h6>Persentase Sukses</h6>
+                        <div id="stat-success-rate" class="metric-val">0%</div>
+                        <div class="metric-sub">Rasio keberhasilan periode</div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#fffbeb;color:#f59e0b;">
+                        💧
+                    </div>
+                    <div class="metric-info">
+                        <h6>Total Volume</h6>
+                        <div id="stat-total-period" class="metric-val">0 ml</div>
+                        <div class="metric-sub">Air diminum pada periode ini</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHART CARD -->
+            <div class="chart-container-card">
+                <div class="chart-header">
+                    <div>
+                        <h4>Grafik Perkembangan Hidrasi</h4>
+                        <p style="font-size:0.85rem;color:var(--text-muted);">Batang biru menunjukkan konsumsi, garis hijau putus-putus menunjukkan target</p>
+                    </div>
+                </div>
+
+                <div class="chart-canvas-wrap">
+                    <canvas id="hydration-chart-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- DETAILED HISTORY TABLE -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <h4 style="margin-bottom: 1.25rem;">Rincian Riwayat Harian</h4>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Hari & Tanggal</th>
+                                <th>Target (ml)</th>
+                                <th>Konsumsi (ml)</th>
+                                <th>Progres</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <!-- Populated by js/statistics.js -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container footer-bottom">
+            <div>&copy; 2026 Daily Hydration Tracker. Terlindungi oleh Supabase RLS.</div>
+            <div>
+                <a href="dashboard.html" style="margin-right:1rem;">Kembali ke Dashboard</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/device.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/statistics.js"></script>
+
+    <script>
+        const user = SupabaseService.getCurrentUser();
+        if (user && user.role === 'admin') {
+            const adminNavItem = document.getElementById('admin-nav-item');
+            if (adminNavItem) adminNavItem.style.display = 'inline-block';
+        }
+    </script>
+</body>
+</html>

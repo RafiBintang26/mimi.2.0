@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Daily Hydration Tracker 💧</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z'/></svg>">
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="container nav-container">
+            <a href="admin.html" class="brand-logo">
+                <div class="brand-icon" style="background:linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);">👑</div>
+                <div class="brand-text">Admin <span>Hydration Portal</span></div>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="admin.html" class="nav-link active">👑 Monitoring Pengguna</a></li>
+                <li><a href="dashboard.html" class="nav-link">💧 Dashboard Pengguna</a></li>
+                <li><a href="profile.html" class="nav-link">👤 Profil</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <span class="badge badge-warning" style="margin-right:0.5rem;">Role: Super Admin</span>
+                <button class="btn btn-outline btn-sm logout-btn" title="Keluar">Keluar 🚪</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="dashboard-wrapper">
+        <div class="container">
+            
+            <div class="dashboard-header">
+                <div>
+                    <h2>Pusat Monitoring Pengguna 👑</h2>
+                    <p style="color:var(--text-secondary);font-size:0.95rem;">Pantau seluruh pengguna, capaian target, dan kelola ikatan perangkat HP</p>
+                </div>
+
+                <div class="dashboard-quick-actions">
+                    <span class="badge badge-info">Autentikasi Server-Side Aktif</span>
+                </div>
+            </div>
+
+            <!-- OVERALL STATISTICS GRID (SECTION A) -->
+            <div class="metrics-grid" style="grid-template-columns: repeat(5, 1fr);">
+                <!-- 1. Total Registered Users -->
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#e0f2fe;color:#0284c7;">
+                        👥
+                    </div>
+                    <div class="metric-info">
+                        <h6>Total Pengguna</h6>
+                        <div id="stat-admin-total-users" class="metric-val">0</div>
+                        <div class="metric-sub">Terdaftar di sistem</div>
+                    </div>
+                </div>
+
+                <!-- 2. Active Users Today -->
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#ecfdf5;color:#10b981;">
+                        ⚡
+                    </div>
+                    <div class="metric-info">
+                        <h6>Aktif Hari Ini</h6>
+                        <div id="stat-admin-active-today" class="metric-val">0</div>
+                        <div class="metric-sub">Mencatat minum hari ini</div>
+                    </div>
+                </div>
+
+                <!-- 3. Target Reached -->
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#f0fdf4;color:#16a34a;">
+                        🏆
+                    </div>
+                    <div class="metric-info">
+                        <h6>Target Tercapai</h6>
+                        <div id="stat-admin-achieved" class="metric-val">0</div>
+                        <div class="metric-sub">Mencapai 100%+ target</div>
+                    </div>
+                </div>
+
+                <!-- 4. Not Reached -->
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#fffbeb;color:#d97706;">
+                        ⏳
+                    </div>
+                    <div class="metric-info">
+                        <h6>Belum Tercapai</h6>
+                        <div id="stat-admin-not-achieved" class="metric-val">0</div>
+                        <div class="metric-sub">Dalam progres / belum</div>
+                    </div>
+                </div>
+
+                <!-- 5. Total Volume Consumed Today -->
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#eff6ff;color:#2563eb;">
+                        🌊
+                    </div>
+                    <div class="metric-info">
+                        <h6>Total Air Hari Ini</h6>
+                        <div id="stat-admin-total-vol" class="metric-val">0 ml</div>
+                        <div class="metric-sub">Seluruh pengguna</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLE MONITORING (SECTION B & D) -->
+            <div class="card" style="margin-bottom: 2rem;">
+                
+                <!-- TOOLBAR (Search, Filters, Sort) -->
+                <div class="admin-toolbar">
+                    <div class="admin-search-box">
+                        <span class="icon">🔍</span>
+                        <input type="text" id="admin-search-input" placeholder="Cari nama, username, atau email...">
+                    </div>
+
+                    <div class="admin-filters">
+                        <select id="admin-status-filter" class="form-select" style="width:auto;padding:0.65rem 1rem;">
+                            <option value="all">Semua Status</option>
+                            <option value="achieved">✓ Target Tercapai</option>
+                            <option value="in_progress">Dalam Progres</option>
+                            <option value="not_started">Belum Mencatat</option>
+                            <option value="inactive">Akun Nonaktif</option>
+                        </select>
+
+                        <select id="admin-sort-filter" class="form-select" style="width:auto;padding:0.65rem 1rem;">
+                            <option value="progress-desc">Progres: Tertinggi ke Terendah</option>
+                            <option value="progress-asc">Progres: Terendah ke Tertinggi</option>
+                            <option value="name-asc">Nama: A - Z</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- USERS TABLE -->
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Nama & Username</th>
+                                <th>Email</th>
+                                <th>Target</th>
+                                <th>Konsumsi Hari Ini</th>
+                                <th>Progres</th>
+                                <th>Status</th>
+                                <th>Registrasi</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-users-table-body">
+                            <!-- Populated dynamically by js/admin.js -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container footer-bottom">
+            <div>&copy; 2026 Daily Hydration Tracker. Portal Manajemen & Keamanan Terpadu.</div>
+            <div>
+                <span class="badge badge-info">Admin Mode Terverifikasi</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- USER DETAIL & DEVICE RECOVERY MODAL -->
+    <div id="user-detail-modal" class="modal-overlay">
+        <div class="modal-card" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3>🔍 Rincian Pengguna & Perangkat</h3>
+                <button id="close-user-modal-btn" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- User Profile Summary -->
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem;padding-bottom:1rem;border-bottom:1px solid var(--border-color);flex-wrap:wrap;gap:1rem;">
+                    <div>
+                        <h4 id="modal-user-name" style="font-size:1.2rem;margin-bottom:0.2rem;">Nama Pengguna</h4>
+                        <div id="modal-user-username" style="font-size:0.85rem;color:var(--primary);font-weight:600;">@username</div>
+                        <div id="modal-user-email" style="font-size:0.85rem;color:var(--text-secondary);margin-top:0.15rem;">email@example.com</div>
+                    </div>
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+                        <button type="button" id="modal-btn-toggle-status" class="btn btn-sm btn-outline">
+                            Nonaktifkan Akun
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bound Device Info & Recovery -->
+                <div style="background:#f8fafc;border:1px solid var(--border-color);border-radius:var(--radius-md);padding:1rem;margin-bottom:1.5rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                        <strong style="font-size:0.88rem;color:var(--text-primary);">📱 Perangkat Terikat (1 HP = 1 Akun)</strong>
+                        <button type="button" id="modal-btn-unbind-device" class="btn btn-sm btn-danger">
+                            🔓 Reset / Unbind Perangkat
+                        </button>
+                    </div>
+                    <div style="font-size:0.85rem;color:var(--text-secondary);" id="modal-user-device-name">
+                        Memuat data perangkat...
+                    </div>
+                    <div style="font-family:monospace;font-size:0.75rem;color:var(--text-muted);margin-top:0.35rem;word-break:break-all;" id="modal-user-device-hash">
+                        Token Hash: -
+                    </div>
+                </div>
+
+                <!-- User Weekly Progress Chart -->
+                <div>
+                    <h5 style="margin-bottom:0.75rem;font-size:0.95rem;">Grafik Konsumsi 7 Hari Terakhir</h5>
+                    <div style="position:relative;width:100%;height:220px;">
+                        <canvas id="modal-user-chart-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('user-detail-modal').classList.remove('active')">
+                    Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/device.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

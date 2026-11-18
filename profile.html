@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil & Perangkat - Daily Hydration Tracker 💧</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z'/></svg>">
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="container nav-container">
+            <a href="dashboard.html" class="brand-logo">
+                <div class="brand-icon">💧</div>
+                <div class="brand-text">Daily Hydration <span>Tracker</span></div>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="dashboard.html" class="nav-link">💧 Dashboard</a></li>
+                <li><a href="statistics.html" class="nav-link">📊 Statistik</a></li>
+                <li><a href="profile.html" class="nav-link active">👤 Profil & Perangkat</a></li>
+                <li id="admin-nav-item" style="display:none;"><a href="admin.html" class="nav-link">👑 Admin Portal</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <button class="btn btn-outline btn-sm logout-btn" title="Keluar">Keluar 🚪</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENT -->
+    <main class="dashboard-wrapper">
+        <div class="container container-narrow">
+            
+            <div class="dashboard-header" style="margin-bottom: 1.5rem;">
+                <div>
+                    <h2>Profil & Keamanan Perangkat 👤</h2>
+                    <p style="color:var(--text-secondary);font-size:0.95rem;">Kelola informasi akun dan identitas perangkat terikat</p>
+                </div>
+            </div>
+
+            <!-- PROFILE CARD -->
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div style="display:flex;align-items:center;gap:1.25rem;margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border-color);">
+                    <div id="profile-avatar-initial" class="user-avatar" style="width:64px;height:64px;font-size:1.75rem;">
+                        U
+                    </div>
+                    <div>
+                        <h3 id="profile-title-name" style="font-size:1.35rem;margin-bottom:0.2rem;">Nama Pengguna</h3>
+                        <span id="profile-role-badge" class="badge badge-info">Pengguna Terverifikasi</span>
+                    </div>
+                </div>
+
+                <form id="profile-form">
+                    <div class="form-group">
+                        <label class="form-label" for="profile-fullname">Nama Lengkap</label>
+                        <input type="text" id="profile-fullname" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="profile-username">Username</label>
+                        <input type="text" id="profile-username" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="profile-email">Alamat Email</label>
+                        <input type="email" id="profile-email" class="form-input" readonly disabled style="background:#f1f5f9;cursor:not-allowed;">
+                        <div class="form-hint">Email akun dikelola melalui Supabase Auth dan tidak dapat diubah sembarangan.</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        Simpan Perubahan Profil
+                    </button>
+                </form>
+            </div>
+
+            <!-- DEVICE BINDING SECURITY CARD -->
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                    <div>
+                        <h4 style="font-size:1.15rem;">Identitas Perangkat Terikat (1 HP = 1 Akun)</h4>
+                        <p style="font-size:0.85rem;color:var(--text-muted);">Sistem validasi token perangkat server-side</p>
+                    </div>
+                    <span id="device-status-badge" class="badge badge-success">Terikat</span>
+                </div>
+
+                <div class="device-card-view">
+                    <div>
+                        <div style="font-weight:700;font-size:0.95rem;color:var(--text-primary);margin-bottom:0.35rem;" id="device-name-display">
+                            Memeriksa Perangkat...
+                        </div>
+                        <div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:0.4rem;">
+                            Token SHA-256 Hash:
+                        </div>
+                        <div class="device-hash-preview" id="device-hash-display">
+                            Menghitung entropy & hash...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Limitation explanation -->
+                <div style="background:#f8fafc;border-left:3px solid var(--primary);padding:0.85rem 1rem;border-radius:4px;margin-top:1.25rem;">
+                    <div style="font-weight:700;font-size:0.85rem;color:var(--text-primary);margin-bottom:0.25rem;">
+                        ℹ️ Catatan Teknis Browser & Pemulihan Akun
+                    </div>
+                    <p id="browser-limitation-text" style="font-size:0.8rem;color:var(--text-secondary);line-height:1.45;">
+                        Browser tidak mengekspos serial hardware fisik demi privasi. Kami memadukan entropy perangkat dan token salt SHA-256 yang divalidasi Supabase. Jika Anda mengganti perangkat HP, hubungi Admin untuk melakukan 'Reset Device Binding'.
+                    </p>
+                </div>
+            </div>
+
+            <!-- PREFERENCES & NOTIFICATIONS -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <h4 style="margin-bottom: 1rem;font-size:1.15rem;">Preferensi Suara & Notifikasi</h4>
+                
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:0.85rem 0;border-bottom:1px solid var(--border-color);">
+                    <div>
+                        <strong style="font-size:0.9rem;">Efek Suara Tetesan Air (Web Audio API)</strong>
+                        <p style="font-size:0.8rem;color:var(--text-muted);">Suara bloop realistis saat mencatat dan merayakan target</p>
+                    </div>
+                    <button id="btn-test-sound" class="btn btn-sm btn-outline">
+                        🔊 Uji Suara
+                    </button>
+                </div>
+
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:0.85rem 0;">
+                    <div>
+                        <strong style="font-size:0.9rem;">Notifikasi Web Browser</strong>
+                        <p style="font-size:0.8rem;color:var(--text-muted);">Terima pop-up pengingat minum saat membuka browser</p>
+                    </div>
+                    <button id="btn-enable-notif" class="btn btn-sm btn-secondary">
+                        🔔 Izin Notifikasi
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container footer-bottom">
+            <div>&copy; 2026 Daily Hydration Tracker. Terlindungi oleh Supabase RLS.</div>
+            <div>
+                <a href="dashboard.html">Kembali ke Dashboard</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/device.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/profile.js"></script>
+
+    <script>
+        const user = SupabaseService.getCurrentUser();
+        if (user && user.role === 'admin') {
+            const adminNavItem = document.getElementById('admin-nav-item');
+            if (adminNavItem) adminNavItem.style.display = 'inline-block';
+        }
+    </script>
+</body>
+</html>

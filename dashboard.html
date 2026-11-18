@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Hidrasi - Daily Hydration Tracker 💧</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z'/></svg>">
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+        <div class="container nav-container">
+            <a href="dashboard.html" class="brand-logo">
+                <div class="brand-icon">💧</div>
+                <div class="brand-text">Daily Hydration <span>Tracker</span></div>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="dashboard.html" class="nav-link active">💧 Dashboard</a></li>
+                <li><a href="statistics.html" class="nav-link">📊 Statistik</a></li>
+                <li><a href="profile.html" class="nav-link">👤 Profil & Perangkat</a></li>
+                <li id="admin-nav-item" style="display:none;"><a href="admin.html" class="nav-link">👑 Admin Portal</a></li>
+            </ul>
+
+            <div class="nav-actions">
+                <a href="profile.html" class="user-menu-pill">
+                    <div id="user-avatar-initials" class="user-avatar">U</div>
+                    <span id="user-display-name" style="font-weight: 600; font-size: 0.9rem;">Memuat...</span>
+                </a>
+                <button class="btn btn-outline btn-sm logout-btn" title="Keluar">Keluar 🚪</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD CONTENT -->
+    <main class="dashboard-wrapper">
+        <div class="container">
+            
+            <!-- HEADER GREETING & ACTIONS -->
+            <div class="dashboard-header">
+                <div class="user-welcome-badge">
+                    <div class="user-welcome-avatar">
+                        <span id="header-avatar-emoji">💧</span>
+                    </div>
+                    <div class="user-welcome-text">
+                        <h2 id="user-greeting">Selamat Pagi ☀️</h2>
+                        <p>
+                            <span>📅</span> <span id="user-date">Memuat tanggal...</span>
+                            <span style="margin: 0 0.35rem;">•</span>
+                            <span class="badge badge-success">HP Terhubung</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="dashboard-quick-actions">
+                    <button id="open-goal-modal-btn" class="btn btn-outline btn-sm">
+                        🎯 Ubah Target Minum
+                    </button>
+                    <button id="request-notif-btn" class="btn btn-secondary btn-sm">
+                        🔔 Atur Pengingat
+                    </button>
+                    <a href="statistics.html" class="btn btn-primary btn-sm">
+                        📈 Lihat Grafik
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4 METRIC CARDS GRID -->
+            <div class="metrics-grid">
+                <!-- Card 1: Consumed -->
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#e0f2fe;color:#0284c7;">
+                        💧
+                    </div>
+                    <div class="metric-info">
+                        <h6>Sudah Diminum</h6>
+                        <div id="val-consumed" class="metric-val">0 ml</div>
+                        <div class="metric-sub">Total konsumsi hari ini</div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Target -->
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#ecfdf5;color:#10b981;">
+                        🎯
+                    </div>
+                    <div class="metric-info">
+                        <h6>Target Harian</h6>
+                        <div id="val-target" class="metric-val">2.000 ml</div>
+                        <div class="metric-sub">Kebutuhan hidrasi Anda</div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Remaining -->
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#fffbeb;color:#f59e0b;">
+                        ⏳
+                    </div>
+                    <div class="metric-info">
+                        <h6>Sisa Target</h6>
+                        <div id="val-remaining" class="metric-val">2.000 ml</div>
+                        <div class="metric-sub">Perlu diminum lagi</div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Percentage -->
+                <div class="metric-card">
+                    <div class="metric-icon-wrap" style="background:#f5f3ff;color:#8b5cf6;">
+                        📈
+                    </div>
+                    <div class="metric-info">
+                        <h6>Pencapaian</h6>
+                        <div id="val-percentage" class="metric-val">0%</div>
+                        <div class="metric-sub">Dari target harian</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAIN HYDRATION MONITORING GRID -->
+            <div class="hydration-main-grid">
+                
+                <!-- LEFT COLUMN: WATER GLASS VISUALIZATION & INTAKE CONTROLS -->
+                <div class="card water-interactive-card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+                        <div>
+                            <h3 style="font-size:1.35rem;text-align:left;">Visualisasi Gelas Air</h3>
+                            <p style="font-size:0.85rem;color:var(--text-muted);text-align:left;">Tingkat pengisian gelas air Anda saat ini</p>
+                        </div>
+                        <span id="live-time-clock" style="font-size:0.85rem;font-weight:600;color:var(--primary);background:#f0f9ff;padding:0.25rem 0.65rem;border-radius:var(--radius-full);">
+                            Live Monitoring
+                        </span>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <div class="progress-bar-wrapper">
+                            <div id="dashboard-progress-bar" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Animated Water Glass -->
+                    <div class="glass-visual-container">
+                        <div class="water-glass">
+                            <div id="water-fill" class="water-fill">
+                                <div class="water-wave"></div>
+                                <div class="water-wave wave-back"></div>
+                                <div class="bubble" style="left: 15%; animation-delay: 0.3s;"></div>
+                                <div class="bubble" style="left: 55%; animation-delay: 1.2s;"></div>
+                                <div class="bubble" style="left: 80%; animation-delay: 0.8s;"></div>
+                            </div>
+                        </div>
+                        <div id="glass-percent-badge" class="glass-percent-badge">0%</div>
+                    </div>
+
+                    <!-- Main Action Buttons -->
+                    <div class="water-actions-bar">
+                        <button id="main-add-water-btn" class="btn btn-primary btn-lg" style="flex: 1; max-width: 280px;">
+                            🥛 + Minum 1 Gelas
+                        </button>
+                        <button id="undo-drink-btn" class="btn btn-danger" title="Kurangi jika salah mencatat">
+                            ↩️ Batalkan Terakhir
+                        </button>
+                    </div>
+
+                    <!-- Quick Intake Presets -->
+                    <div style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+                            <h5 style="font-size: 0.92rem; text-align: left;">Pilihan Ukuran Minum Cepat</h5>
+                            <span style="font-size: 0.78rem; color: var(--text-muted);">Klik untuk mencatat</span>
+                        </div>
+
+                        <div class="preset-grid">
+                            <button class="preset-btn" data-amount="150">
+                                <span class="preset-icon">☕</span>
+                                <span class="preset-vol">150 ml</span>
+                                <span class="preset-lbl">Cangkir Kecil</span>
+                            </button>
+                            <button class="preset-btn" id="preset-main-glass" data-amount="250">
+                                <span class="preset-icon">🥛</span>
+                                <span class="preset-vol">250 ml</span>
+                                <span class="preset-lbl">Gelas Standar</span>
+                            </button>
+                            <button class="preset-btn" data-amount="330">
+                                <span class="preset-icon">🧃</span>
+                                <span class="preset-vol">330 ml</span>
+                                <span class="preset-lbl">Kaleng / Botol</span>
+                            </button>
+                            <button class="preset-btn" data-amount="600">
+                                <span class="preset-icon">🍶</span>
+                                <span class="preset-vol">600 ml</span>
+                                <span class="preset-lbl">Botol Besar</span>
+                            </button>
+                        </div>
+
+                        <!-- Custom Intake Input -->
+                        <div style="display: flex; gap: 0.65rem; margin-top: 1rem;">
+                            <input type="number" id="custom-amount-input" class="form-input" placeholder="Ketik ukuran sendiri (ml), cth: 400" min="50" max="2000" step="50">
+                            <button id="custom-add-btn" class="btn btn-secondary" style="flex-shrink:0;">
+                                + Tambah
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: TODAY'S LOGS & HYDRATION STATUS -->
+                <div class="card" style="display:flex;flex-direction:column;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;">
+                        <div>
+                            <h3 style="font-size:1.35rem;">Riwayat Hari Ini</h3>
+                            <p style="font-size:0.85rem;color:var(--text-muted);">Catatan waktu dan volume minum air</p>
+                        </div>
+                        <span class="badge badge-info">Real-time Log</span>
+                    </div>
+
+                    <!-- Logs List -->
+                    <div id="today-logs-container" class="logs-list" style="flex:1;">
+                        <!-- Dynamically filled by js/dashboard.js -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="logs-empty-state" class="empty-state" style="display:none;padding:2rem 1rem;">
+                        <div class="empty-state-icon">💧</div>
+                        <h4>Belum Ada Catatan Hari Ini</h4>
+                        <p style="font-size:0.85rem;">Klik tombol "+ Minum 1 Gelas" di samping untuk mencatat konsumsi air pertama Anda.</p>
+                    </div>
+
+                    <!-- Hydration Advice Card -->
+                    <div style="background:#f0f9ff;border-radius:var(--radius-md);padding:1rem;margin-top:1.5rem;border:1px solid #bae6fd;">
+                        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;">
+                            <span style="font-size:1.15rem;">💡</span>
+                            <strong style="font-size:0.88rem;color:var(--primary-dark);">Tips Sehat Hidrasi</strong>
+                        </div>
+                        <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.4;">
+                            Minumlah air sedikit demi sedikit sepanjang hari daripada sekaligus banyak, agar ginjal dapat menyerap cairan secara optimal.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container footer-bottom">
+            <div>&copy; 2026 Daily Hydration Tracker. Terlindungi oleh Supabase RLS.</div>
+            <div>
+                <a href="statistics.html" style="margin-right:1rem;">Statistik</a>
+                <a href="profile.html">Profil & Perangkat</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- GOAL & GLASS SIZE SETTINGS MODAL -->
+    <div id="goal-settings-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>🎯 Atur Target & Gelas Minum</h3>
+                <button id="close-goal-modal-btn" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="goal-settings-form">
+                    <div class="form-group">
+                        <label class="form-label" for="input-target-ml">Target Minum Harian (ml) <span class="req">*</span></label>
+                        <input type="number" id="input-target-ml" class="form-input" min="500" max="10000" step="100" required>
+                        <div class="form-hint">Rekomendasi umum: 2.000 ml (2 Liter) untuk menjaga hidrasi tubuh normal.</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="input-glass-size-ml">Ukuran Gelas Utama (ml) <span class="req">*</span></label>
+                        <input type="number" id="input-glass-size-ml" class="form-input" min="100" max="2000" step="50" required>
+                        <div class="form-hint">Digunakan saat Anda menekan tombol "+ Minum 1 Gelas". Contoh: 250 ml.</div>
+                    </div>
+
+                    <div class="modal-footer" style="padding-left:0;padding-right:0;padding-bottom:0;background:transparent;">
+                        <button type="submit" class="btn btn-primary btn-block">Simpan Pengaturan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/device.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+
+    <script>
+        // Check if user is admin, show Admin Portal link in navbar
+        const user = SupabaseService.getCurrentUser();
+        if (user && user.role === 'admin') {
+            const adminNavItem = document.getElementById('admin-nav-item');
+            if (adminNavItem) adminNavItem.style.display = 'inline-block';
+        }
+    </script>
+</body>
+</html>

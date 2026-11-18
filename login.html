@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk - Daily Hydration Tracker 💧</title>
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230284c7'><path d='M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z'/></svg>">
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components.css">
+    <!-- Supabase JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .auth-page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 1.25rem;
+        }
+        .auth-card {
+            width: 100%;
+            max-width: 440px;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2.5rem 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+        .auth-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .auth-header .brand-icon {
+            margin: 0 auto 1rem;
+            width: 48px;
+            height: 48px;
+            font-size: 1.5rem;
+        }
+        .auth-header h2 {
+            font-size: 1.75rem;
+            color: var(--text-primary);
+            margin-bottom: 0.35rem;
+        }
+        .auth-header p {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+        }
+        .demo-credentials-box {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: var(--radius-md);
+            padding: 0.85rem;
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+        .demo-credentials-box p {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+        .demo-btns {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-page-wrapper">
+        <div class="auth-card">
+            <div class="auth-header">
+                <a href="index.html" class="brand-icon">💧</a>
+                <h2>Selamat Datang</h2>
+                <p>Masuk untuk memantau konsumsi air harian Anda</p>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="login-identifier">Email atau Username <span class="req">*</span></label>
+                    <div class="input-icon-wrapper">
+                        <span class="icon">👤</span>
+                        <input type="text" id="login-identifier" class="form-input" placeholder="nama@email.com atau username" required autocomplete="username">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.45rem;">
+                        <label class="form-label" for="login-password" style="margin-bottom:0;">Kata Sandi <span class="req">*</span></label>
+                        <a href="#" id="forgot-password-link" style="font-size:0.8rem;">Lupa kata sandi?</a>
+                    </div>
+                    <div class="input-icon-wrapper">
+                        <span class="icon">🔒</span>
+                        <input type="password" id="login-password" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+                    <label style="display:flex;align-items:center;gap:0.45rem;font-size:0.85rem;color:var(--text-secondary);cursor:pointer;">
+                        <input type="checkbox" id="login-remember" checked>
+                        Ingat sesi saya
+                    </label>
+                </div>
+
+                <button type="submit" id="login-submit-btn" class="btn btn-primary btn-block btn-lg">
+                    Masuk Sekarang 💧
+                </button>
+            </form>
+
+            <!-- Quick Demo Credentials Fill -->
+            <div class="demo-credentials-box">
+                <p><strong>Coba Akun Demo Cepat:</strong></p>
+                <div class="demo-btns">
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="Auth.fillDemoAccount('user')">
+                        👤 Akun User
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline" onclick="Auth.fillDemoAccount('admin')">
+                        👑 Akun Admin
+                    </button>
+                </div>
+            </div>
+
+            <div style="text-align:center;margin-top:1.75rem;font-size:0.9rem;color:var(--text-secondary);">
+                Belum memiliki akun? <a href="register.html" style="font-weight:700;">Daftar Akun Baru</a>
+            </div>
+
+            <div style="text-align:center;margin-top:1rem;">
+                <a href="index.html" style="font-size:0.82rem;color:var(--text-muted);">← Kembali ke Halaman Utama</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORGOT PASSWORD MODAL -->
+    <div id="forgot-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Lupa Kata Sandi</h3>
+                <button id="close-forgot-modal" class="modal-close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:1.25rem;">
+                    Masukkan email akun Anda. Tautan pemulihan kata sandi akan dikirimkan ke email terdaftar melalui Supabase Auth.
+                </p>
+                <div class="form-group">
+                    <label class="form-label">Email Terdaftar</label>
+                    <input type="email" id="forgot-email" class="form-input" placeholder="nama@email.com">
+                </div>
+                <button type="button" id="btn-send-reset" class="btn btn-primary btn-block">Kirim Tautan Pemulihan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/device.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/auth.js"></script>
+
+    <script>
+        // Forgot password modal
+        const forgotLink = document.getElementById('forgot-password-link');
+        const forgotModal = document.getElementById('forgot-modal');
+        const closeForgot = document.getElementById('close-forgot-modal');
+        const btnSendReset = document.getElementById('btn-send-reset');
+
+        if (forgotLink && forgotModal) {
+            forgotLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                forgotModal.classList.add('active');
+            });
+        }
+        if (closeForgot && forgotModal) {
+            closeForgot.addEventListener('click', () => forgotModal.classList.remove('active'));
+        }
+        if (btnSendReset) {
+            btnSendReset.addEventListener('click', () => {
+                const email = document.getElementById('forgot-email').value.trim();
+                if (!email) {
+                    Notifications.showToast('Masukkan Email', 'Silakan ketik email Anda.', 'warning');
+                    return;
+                }
+                Notifications.showToast('Tautan Terkirim', 'Instruksi pemulihan kata sandi telah dikirim ke ' + email, 'success');
+                forgotModal.classList.remove('active');
+            });
+        }
+    </script>
+</body>
+</html>
